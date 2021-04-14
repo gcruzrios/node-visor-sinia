@@ -3,6 +3,8 @@ function getLayers () {
 }
 
 
+ // Archivo original
+
 const loaded = new Promise((resolve, reject) => window.addEventListener('load', event => resolve(event)))
 
 const makeSelectOption = ({name, title}) => {
@@ -17,8 +19,8 @@ const zoomedOrMoved = (map, cb) => {
 }
 
 function setMapViewFromUrl(map, url) {
-  const lat = url.searchParams.get('lat') || 10
-  const lng = url.searchParams.get('lng') || -84
+  const lat = url.searchParams.get('lat') || 9.748917
+  const lng = url.searchParams.get('lng') || -83.753428
   const zoomlevel = url.searchParams.get('z') || 8
   return map.setView(L.latLng(lat, lng), zoomlevel)
 }
@@ -103,6 +105,91 @@ loaded
     setMapViewFromUrl(map, url)
   })
 })
+
+// Visor SINIA
+
+//var defaultBase = L.tileLayer.provider('OpenStreetMap').addTo(map);
+
+const baseLayers = {
+  //'OpenStreetMap': defaultBase,
+  'USGS TNM': L.tileLayer.provider('USGSTNM'),
+  'ESRI Imagery': L.tileLayer.provider('Esri.WorldImagery'),
+  'ESRI Ocean Basemap': L.tileLayer.provider('Esri.OceanBasemap'),
+  'OSM Topo': L.tileLayer.provider('OpenTopoMap')
+};
+  var options_layer = {
+    transparent: 'true',
+    format: 'image/png',
+    opacity: 0.5,
+    tiled: 'true'
+    //info_format: 'text/html'
+  };
+ 
+  console.log(L.WMS);
+  
+  var source = L.WMS.source('http://geomapa.tk:8080/geoserver/costarica-snit/wms?', options_layer);
+  var CantonesLayer = source.getLayer('costarica-snit:Cantones_de_Costa_Rica');
+  var DistritosLayer = source.getLayer('costarica-snit:Distritos_de_Costa_Rica');
+  var ProvinciasLayer = source.getLayer('costarica-snit:Provincias_de_Costa_Rica');
+
+  var groupOverLays = {
+    "DTA": {
+        "Cantones": CantonesLayer,
+        "Distritos": DistritosLayer,
+        "Provincias": ProvinciasLayer,
+    },
+  };
+
+  //add layer switch control
+  L.control.groupedLayers(baseLayers, groupOverLays).addTo(map);
+
+
+  //add scale bar to map
+  L.control.scale({
+      position: 'bottomleft'
+  }).addTo(map);
+
+  // Overview mini map
+  const Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+});
+
+const miniMap = new L.Control.MiniMap(Esri_WorldTopoMap, {
+      toggleDisplay: true,
+      minimized: false,
+      position: 'bottomleft'
+}).addTo(map);
+
+//define Drawing toolbar options
+const options = {
+    position: 'topleft', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
+    drawMarker: true, // adds button to draw markers
+    drawPolyline: true, // adds button to draw a polyline
+    drawRectangle: true, // adds button to draw a rectangle
+    drawPolygon: true, // adds button to draw a polygon
+    drawCircle: true, // adds button to draw a cricle
+    cutPolygon: true, // adds button to cut a hole in a polygon
+    editMode: true, // adds button to toggle edit mode for all layers
+    removalMode: true, // adds a button to remove layers
+};
+
+// add leaflet.pm controls to the map
+map.pm.addControls(options);
+
+//Logo position: bottomright
+const credctrl = L.controlCredits({
+    image: "images/opengislab_106x23.png",
+    link: "https://www.opengislab.com/",
+    text: "Leaflet map example by Stephanie @ <u>opengislab.com<u/>"
+}).addTo(map);
+
+
+
+
+
+
+// Sigue el proyecto Node Original
+
 
 // utillity
 function xhr (method, url, body) {
